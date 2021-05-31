@@ -1,0 +1,7 @@
+D:\CSharp\Blackjack\Blackjack\bin\Release\Blackjack.exe.config
+D:\CSharp\Blackjack\Blackjack\bin\Release\Blackjack.exe
+D:\CSharp\Blackjack\Blackjack\bin\Release\Blackjack.pdb
+D:\CSharp\Blackjack\Blackjack\obj\Release\Blackjack.csprojAssemblyReference.cache
+D:\CSharp\Blackjack\Blackjack\obj\Release\Blackjack.csproj.CoreCompileInputs.cache
+D:\CSharp\Blackjack\Blackjack\obj\Release\Blackjack.exe
+D:\CSharp\Blackjack\Blackjack\obj\Release\Blackjack.pdb
