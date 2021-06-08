@@ -22,5 +22,11 @@ namespace Blackjack
         // cards currently in hand
         public static List<int> handPlayer = new List<int>() { };
         public static List<int> handDealer = new List<int>() { };
+
+        // sum of cards' values in hand of dealer/player
+        public static int cardSumDealer;
+        public static int cardSumPlayer;
+
+        public static bool playerStand; // false until player chooses to Stand
     }
 }

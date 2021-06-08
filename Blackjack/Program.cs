@@ -5,7 +5,7 @@ namespace Blackjack
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main()
         {
             // welcome message
             Console.Clear();
@@ -16,111 +16,47 @@ namespace Blackjack
             CardService service = new CardService();
 
             char choice = ' '; // hold player's choice, used when asking for Hit or Stand, or whether to play a new game
-            bool playerEnd = false; // false until player chooses to Stand
-
-            // sum of cards' values in hand of dealer/player
-            int cardSumDealer;
-            int cardSumPlayer;
+            bool gameEnded = false; // used so there's no need to needlessly call the method twice in a row
 
             while (true)
-            {// reset game
-                Console.Clear();
-                CardRepo.handPlayer.Clear();
-                CardRepo.handDealer.Clear();
-                CardRepo.deck = CardRepo.newDeck;
-                cardSumDealer = 0;
-                cardSumPlayer = 0;
-                playerEnd = false;
-
-                // deal initial hands
-                service.DealCard(false); // false = dealer
-                service.DealCard(false);
-                service.DealCard(true); // true = player
-                service.DealCard(true);
+            {
+                service.resetGame();
 
                 // the actual game happens in this loop
                 while (true)
                 {
                     // calculate sum of hand in advance
-                    cardSumDealer = service.HandSum(false);
-                    cardSumPlayer = service.HandSum(true);
+                    CardRepo.cardSumDealer = service.HandSum(false);
+                    CardRepo.cardSumPlayer = service.HandSum(true);
 
-                    // show hands
-                    Console.Clear();
-                    Console.WriteLine($"Dealer: {cardSumDealer} ({service.HandEach(false)})");
-                    Console.WriteLine($"Player: {cardSumPlayer} ({service.HandEach(true)})");
+                    service.showHands();
 
                     // when player Stands, dealer gets cards until has value 17 or more
-                    if (playerEnd)
+                    if (CardRepo.playerStand)
                     {
-                        while (cardSumDealer < 17)
+                        while (CardRepo.cardSumDealer < 17)
                         {
                             Thread.Sleep(1000);
+
+                            // deal card to dealer and calculate sum of dealer's hand
                             service.DealCard(false);
-                            cardSumDealer = service.HandSum(false);
-                            Console.Clear();
-                            Console.WriteLine($"Dealer: {cardSumDealer} ({service.HandEach(false)})");
-                            Console.WriteLine($"Player: {cardSumPlayer} ({service.HandEach(true)})");
+                            CardRepo.cardSumDealer = service.HandSum(false);
+
+                            service.showHands();
                         }
 
-                        if (cardSumDealer >= 17)
+                        // check if player or dealer wins/loses
+                        if (service.checkWin(CardRepo.playerStand))
                         {
-                            if (cardSumPlayer > cardSumDealer)
-                            {
-                                Thread.Sleep(1000);
-                                Console.WriteLine("\nPlayer wins!");
-                                break;
-                            }
-                            else if (cardSumPlayer == cardSumDealer)
-                            {
-                                Thread.Sleep(1000);
-                                Console.WriteLine("\nPUSH\nNo one wins!");
-                                break;
-                            }
-                            else if (cardSumDealer <= 21)
-                            {
-                                Thread.Sleep(1000);
-                                Console.WriteLine("\nDealer wins!");
-                                break;
-                            }
-                            else
-                            {
-                                Thread.Sleep(1000);
-                                Console.WriteLine("\nDEALER BUSTED\nPlayer wins!");
-                                break;
-                            }
+                            gameEnded = true;
+                            break;
                         }
                     }
 
-                    // game-ending events
-                    if (cardSumPlayer > 21)
+                    // check if player or dealer wins/loses
+                    if (gameEnded || service.checkWin(CardRepo.playerStand))
                     {
-                        Thread.Sleep(1000);
-                        Console.WriteLine("\nPLAYER BUSTED\nDealer wins!");
-                        break;
-                    }
-                    else if (cardSumDealer > 21)
-                    {
-                        Thread.Sleep(1000);
-                        Console.WriteLine("\nDEALER BUSTED\nPlayer wins!");
-                        break;
-                    }
-                    else if ((cardSumDealer == cardSumPlayer) && !(cardSumDealer <= 17))
-                    {
-                        Thread.Sleep(1000);
-                        Console.WriteLine("\nPUSH\nNo one wins!");
-                        break;
-                    }
-                    else if ((cardSumDealer == 21) && (CardRepo.handDealer.Count == 2))
-                    {
-                        Thread.Sleep(1000);
-                        Console.WriteLine("\nBLACKJACK\nDealer wins!");
-                        break;
-                    }
-                    else if ((cardSumPlayer == 21) && (CardRepo.handPlayer.Count == 2))
-                    {
-                        Thread.Sleep(1000);
-                        Console.WriteLine("\nBLACKJACK\nPlayer wins!");
+                        gameEnded = false;
                         break;
                     }
 
@@ -133,7 +69,7 @@ namespace Blackjack
                         do
                         {
                             choice = Console.ReadKey().KeyChar;
-                        } while ((choice != 'y') && (choice != 'n'));
+                        } while ((choice != 'y') && (choice != 'n')); // do nothing if player presses keys other than Y or N
                     }
 
                     // if player presses Y, they're dealt another card
@@ -144,13 +80,13 @@ namespace Blackjack
                     // player presses N, they stop taking cards
                     else
                     {
-                        playerEnd = true;
+                        CardRepo.playerStand = true;
                     }
+
+                    choice = ' ';
                 }
 
                 // game is over
-                choice = ' ';
-
                 Thread.Sleep(1000);
 
                 Console.WriteLine("\nPlay again? (y/n)");
@@ -161,7 +97,7 @@ namespace Blackjack
 
                 if (choice == 'y')
                 {
-                    continue;
+                    choice =  ' ';
                 }
                 else
                 {

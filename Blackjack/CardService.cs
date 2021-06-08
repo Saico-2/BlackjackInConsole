@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 
 namespace Blackjack
 {
@@ -14,9 +15,9 @@ namespace Blackjack
             // deal a card to player
             if (player)
             {
-                int randomCard = rnd.Next(CardRepo.deck.Count); // choose a random card from deck
+                int randomCard = rnd.Next(CardRepo.deck.Count);     // choose a random card from deck
                 CardRepo.handPlayer.Add(CardRepo.deck[randomCard]); // add card to hand
-                CardRepo.deck.RemoveAt(randomCard);             // remove added card from deck
+                CardRepo.deck.RemoveAt(randomCard);                 // remove added card from deck
             }
             // deal a card to dealer
             else
@@ -119,6 +120,120 @@ namespace Blackjack
                 cards = cards.Remove(cards.Length - 2);
                 return cards;
             }
+        }
+    
+
+        // game-ending events
+        public bool checkWin(bool playerStand)
+        {
+            // BEFORE player Stands
+            if(!playerStand)
+            {
+                // player has over 21 points (bust)
+                if (CardRepo.cardSumPlayer > 21)
+                {
+                    Thread.Sleep(1000);
+                    Console.WriteLine("\nPLAYER BUSTED\nDealer wins!");
+                    return true;
+                }
+
+                // player and dealer were given equal hands
+                else if ((CardRepo.handPlayer.Count == 2) && (CardRepo.handDealer.Count == 1) && (CardRepo.cardSumPlayer == CardRepo.cardSumDealer))
+                {
+                    Thread.Sleep(1000);
+                    Console.WriteLine("\nPUSH\nNo one wins!");
+                    return true;
+                }
+
+                // player got Blackjack (initial hand value of 21)
+                else if ((CardRepo.handPlayer.Count == 2) && (CardRepo.cardSumPlayer == 21))
+                {
+                    Thread.Sleep(1000);
+                    Console.WriteLine("\nBLACKJACK\nPlayer wins!");
+                    return true;
+                }
+
+                // all conditions false, game continues
+                else
+                {
+                    return false;
+                }
+            }
+
+            // AFTER player Stands and dealer has 17 or more points
+            else if(CardRepo.cardSumDealer >= 17)
+            {
+                // player has more points (21 or less)
+                if (CardRepo.cardSumPlayer > CardRepo.cardSumDealer)
+                {
+                    Thread.Sleep(1000);
+                    Console.WriteLine("\nPlayer wins!");
+                    return true;
+                }
+
+                // player and dealer have equal amounts of points (21 or less)
+                else if (CardRepo.cardSumPlayer == CardRepo.cardSumDealer)
+                {
+                    Thread.Sleep(1000);
+                    Console.WriteLine("\nPUSH\nNo one wins!");
+                    return true;
+                }
+                /// (if all above conditions are false, player must have less points than dealer)
+
+                // dealer did not bust (21 points or less)
+                else if (CardRepo.cardSumDealer <= 21)
+                {
+                    Thread.Sleep(1000);
+                    Console.WriteLine("\nDealer wins!");
+                    return true;
+                }
+                /// (if previous condition is false, dealer must have more than 21 points)
+
+                // dealer busted (more than 21 points)
+                else
+                {
+                    Thread.Sleep(1000);
+                    Console.WriteLine("\nDEALER BUSTED\nPlayer wins!");
+                    return true;
+                }
+            }
+
+            // all conditions false, game continues
+            else
+            {
+                return false;
+            }
+        }
+    
+
+        // shows sum of cards and each card held by dealer and player
+        public void showHands()
+        {
+            Console.Clear();
+            Console.WriteLine($"Dealer: {CardRepo.cardSumDealer} ({HandEach(false)})");
+            Console.WriteLine($"Player: {CardRepo.cardSumPlayer} ({HandEach(true)})");
+        }
+    
+
+        // prepare a new game
+        public void resetGame()
+        {
+            Console.Clear();
+
+            // replace used deck with a fresh one containing all cards
+            CardRepo.deck = CardRepo.newDeck;
+
+            // empty hands and choices
+            CardRepo.handPlayer.Clear();
+            CardRepo.handDealer.Clear();
+            CardRepo.cardSumDealer = 0;
+            CardRepo.cardSumPlayer = 0;
+            CardRepo.playerStand = false;
+
+            // deal initial hands
+            DealCard(false); // false = dealer
+            DealCard(true); // true = player
+            DealCard(true);
         }
     }
 }
